@@ -52,10 +52,10 @@ the `rbgo` interpreter path recorded above. It isolates the library primitive
 from Ruby-interpreter dispatch, answering the parity question head-on: *is the
 pure-Go implementation as fast as the reference runtime's own `zlib`?* Ruby's
 `zlib` is a C extension wrapping the system C `zlib`, whereas `go-ruby-zlib` is
-pure Go (`github.com/klauspost/compress` for DEFLATE, plus the standard library's
-`hash/crc32` / `hash/adler32` for the checksums) — so this is a pure-Go stack
-measured head-to-head against a C library, and we report the real numbers either
-way.
+pure Go (`github.com/klauspost/compress` for DEFLATE, a hand-written arm64 PMULL
+carryless-multiply kernel for CRC-32, and `go-simd/adler32` for Adler-32) — so
+this is a pure-Go stack measured head-to-head against a C library, and we report
+the real numbers either way.
 
 - **Host:** Apple M4 Max (arm64), macOS — **date 2026-07-03**.
 - **Runtimes:** Go 1.26.4 · MRI `ruby 4.0.5 +PRISM` · MRI + YJIT · JRuby 10.1.0.0
@@ -107,11 +107,14 @@ Reproduce: `bash benchmarks/run.sh`.
 
 | Runtime | ns/op | vs MRI |
 | --- | ---: | ---: |
-| **go-ruby (pure Go)** | 5443.8 | 3.86× |
+| **go-ruby (pure Go)** | 1275.2 | 0.90× |
 | MRI | 1412.0 | 1.00× |
 | MRI + YJIT | 1552.0 | 1.10× |
 | JRuby | 6236.3 | 4.42× |
 | TruffleRuby | 2299.9 | 1.63× |
+
+*(2026-07-03: was 5443.8 / 3.86× before the SIMD kernel — a 4.3× speed-up that
+now beats MRI's C zlib and YJIT. See below.)*
 
 #### adler32-64KiB
 
@@ -134,17 +137,40 @@ Reproduce: `bash benchmarks/run.sh`.
   faster than pure-Go flate decompression here; go-ruby lands right alongside
   TruffleRuby (2.57×) and well ahead of JRuby (4.33×). This is the clearest
   optimization target for the library.
-- **CRC-32 — go-ruby is ~3.9× slower than MRI (3.86×).** Go's `hash/crc32` IEEE
-  path on arm64 is a generic slicing-by-8 table, not a hardware-CRC kernel, so it
-  trails zlib's optimized checksum; go-ruby is still faster than JRuby (4.42×).
-- **Adler-32 — go-ruby is ~6× slower than MRI (6.08×).** Go's scalar
-  `hash/adler32` is the slowest column here; zlib's vectorized Adler-32 and even
-  JRuby (0.82×) beat it. A SIMD Adler-32 is the largest single checksum gap.
+- **CRC-32 — go-ruby is now ~10% *faster* than MRI (0.90×) and beats YJIT
+  (0.82× of YJIT).** The library folds CRC-32 with a hand-written arm64 **PMULL
+  fold-by-eight** carryless-multiply kernel (`internal/crc32simd`), bit-identical
+  to `hash/crc32` but ~4.3× faster than it here: Go's standard-library IEEE path
+  on arm64 is a **latency-bound serial `CRC32X`** instruction, whereas eight
+  independent 128-bit accumulators saturate the M-series PMULL units and clear
+  both the C-zlib reference (MRI 1412 ns) and YJIT (1552 ns). This flips CRC-32
+  from the second-worst checksum column to a win.
+- **Adler-32 — still ~6× slower than MRI (6.08×), unchanged on this host.** The
+  library now routes Adler-32 through [`go-simd/adler32`](https://github.com/go-simd/adler32),
+  a bit-exact SIMD drop-in — but its NEON kernel needs the integer widening
+  multiply `VUMULL`, which Go's arm64 assembler only exposes in **Go 1.27+**; on
+  the stable Go 1.26.4 used here that path compiles to the scalar fallback, so the
+  measured number does not move. `go-simd/adler32` *does* accelerate Adler-32 on
+  **amd64 (SSE/AVX2)**, riscv64, ppc64le and s390x, so those arches gain now; the
+  arm64 win lands automatically on Go 1.27 (or a 1.26-compatible multiply-free
+  NEON kernel — tracked as follow-up). This is the **honest floor**: without an
+  integer NEON multiply on stable-Go arm64, a 6× SIMD gap over zlib's vectorized
+  Adler-32 cannot be closed here.
 
-The parity picture is therefore **split**: go-ruby-zlib is *faster than the C
-reference on deflate* and *behind it on inflate and on the two checksums*. The
-checksum gaps are hand-asm/SIMD walls (Go's standard-library kernels vs zlib's
-tuned ones), which is the honest ceiling for a CGO=0 stack on this host.
+The parity picture is therefore **improved**: go-ruby-zlib is now *faster than the
+C reference on deflate **and** CRC-32*, and behind it on inflate and Adler-32. The
+CRC-32 gap is closed with a carryless-multiply kernel; the remaining Adler-32 gap
+is a stable-Go arm64 toolchain wall (no integer NEON multiply until Go 1.27), not
+an algorithmic one.
+
+!!! note "Per-architecture"
+    The CRC-32 PMULL kernel is **arm64-only**: on amd64 the Go standard library's
+    IEEE path is *already* a fold-by-four (and AVX512 fold-by-sixteen) PCLMULQDQ
+    kernel, so the library defers to it there (parity, already at C-zlib class);
+    ppc64le/s390x likewise use their hardware-assisted standard-library path. The
+    hand kernel targets arm64 precisely because its standard-library path is the
+    serial `CRC32X`. The reusable fold is a candidate for extraction into a
+    standalone `go-simd/crc32` (flagged as follow-up).
 
 !!! note "Honest framing"
     JRuby and TruffleRuby carry JIT warm-up; the 3-pass warm-up here lets them
@@ -153,4 +179,4 @@ tuned ones), which is the honest ceiling for a CGO=0 stack on this host.
     extension, not against a pure-Ruby baseline. These are **real measured
     numbers** from the 2026-07-03 run (host and versions above); best-of-25 was
     stable across repeated runs (deflate 0.14×, inflate ~2.4–2.5×, crc32
-    ~3.5–3.9×, adler32 ~5.5–6.1×). Nothing is fabricated or cherry-picked.
+    ~0.88–0.92×, adler32 ~5.5–6.3×). Nothing is fabricated or cherry-picked.
