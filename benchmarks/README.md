@@ -8,8 +8,8 @@ interpreter, so the numbers answer: *is the pure-Go implementation as fast as th
 reference runtime's own `zlib`?*
 
 Ruby's `zlib` is a C extension wrapping the system C `zlib`; `go-ruby-zlib` is
-pure Go (`github.com/klauspost/compress` DEFLATE + the standard library's
-SIMD `hash/crc32` / `hash/adler32`), so on raw deflate throughput MRI's C zlib
+pure Go (`github.com/klauspost/compress` DEFLATE + a SIMD carryless-multiply
+CRC-32 kernel + `go-simd/adler32`), so on raw deflate throughput MRI's C zlib
 may win — the harness reports the real numbers either way.
 
 ## Layout
