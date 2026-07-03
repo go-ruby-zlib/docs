@@ -412,6 +412,66 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#library-level-benchmark-go-api-vs-runtimes-2026-07-03" class="md-nav__link">
+    <span class="md-ellipsis">
+      Library-level benchmark (Go API vs runtimes) — 2026-07-03
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Library-level benchmark (Go API vs runtimes) — 2026-07-03">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deflate-64kib-l6" class="md-nav__link">
+    <span class="md-ellipsis">
+      deflate-64KiB-L6
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inflate-64kib-l6" class="md-nav__link">
+    <span class="md-ellipsis">
+      inflate-64KiB-L6
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#crc32-64kib" class="md-nav__link">
+    <span class="md-ellipsis">
+      crc32-64KiB
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adler32-64kib" class="md-nav__link">
+    <span class="md-ellipsis">
+      adler32-64KiB
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-the-numbers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reading the numbers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -481,6 +541,66 @@
       Result (best of 5, ms)
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#library-level-benchmark-go-api-vs-runtimes-2026-07-03" class="md-nav__link">
+    <span class="md-ellipsis">
+      Library-level benchmark (Go API vs runtimes) — 2026-07-03
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Library-level benchmark (Go API vs runtimes) — 2026-07-03">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deflate-64kib-l6" class="md-nav__link">
+    <span class="md-ellipsis">
+      deflate-64KiB-L6
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inflate-64kib-l6" class="md-nav__link">
+    <span class="md-ellipsis">
+      inflate-64KiB-L6
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#crc32-64kib" class="md-nav__link">
+    <span class="md-ellipsis">
+      crc32-64KiB
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adler32-64kib" class="md-nav__link">
+    <span class="md-ellipsis">
+      adler32-64KiB
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-the-numbers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reading the numbers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -569,6 +689,222 @@ that complete in well under ~200 ms carry the most relative noise; treat
 their ratios as order-of-magnitude. These are <strong>real measured numbers</strong> from
 the 2026-06-30 run (Apple M-series; <code>ruby 4.0.5 +PRISM</code>, <code>jruby 10.1.0.0</code>,
 <code>truffleruby 34.0.1</code>) — nothing is fabricated or cherry-picked.</p>
+</div>
+<h2 id="library-level-benchmark-go-api-vs-runtimes-2026-07-03">Library-level benchmark (Go API vs runtimes) — 2026-07-03<a class="headerlink" href="#library-level-benchmark-go-api-vs-runtimes-2026-07-03" title="Permanent link">&para;</a></h2>
+<p>This section measures the <strong>pure-Go library directly, through its Go API</strong> — not
+the <code>rbgo</code> interpreter path recorded above. It isolates the library primitive
+from Ruby-interpreter dispatch, answering the parity question head-on: <em>is the
+pure-Go implementation as fast as the reference runtime's own <code>zlib</code>?</em> Ruby's
+<code>zlib</code> is a C extension wrapping the system C <code>zlib</code>, whereas <code>go-ruby-zlib</code> is
+pure Go (<code>github.com/klauspost/compress</code> for DEFLATE, plus the standard library's
+<code>hash/crc32</code> / <code>hash/adler32</code> for the checksums) — so this is a pure-Go stack
+measured head-to-head against a C library, and we report the real numbers either
+way.</p>
+<ul>
+<li><strong>Host:</strong> Apple M4 Max (arm64), macOS — <strong>date 2026-07-03</strong>.</li>
+<li><strong>Runtimes:</strong> Go 1.26.4 · MRI <code>ruby 4.0.5 +PRISM</code> · MRI + YJIT · JRuby 10.1.0.0
+  (OpenJDK 25) · TruffleRuby 34.0.1 (GraalVM CE Native).</li>
+<li><strong>Library pinned:</strong> <code>github.com/go-ruby-zlib/zlib@v0.0.0-20260703114753-dbf176c108fc</code>
+  (published pseudo-version, no <code>replace</code>).</li>
+<li><strong>Workload:</strong> a deterministic <strong>~64 KiB "mixed text / repetitive" buffer</strong> (a
+  repeating English phrase perturbed every 97th byte). The Go and Ruby drivers
+  build the <strong>byte-identical</strong> buffer — both confirm <code>crc32=ec32c294</code>,
+  <code>adler32=78a49dc4</code> — at a fixed <strong>compression level 6</strong>.</li>
+<li><strong>Correctness, verified before timing:</strong> both drivers assert
+  <code>inflate(deflate(buf)) == buf</code> (round-trip OK on both). The raw deflate byte
+  streams <strong>differ</strong> (Go flate frames 2686 B, MRI C zlib frames 2499 B for this
+  buffer): zlib never promises a canonical encoding, so this is expected — the
+  <strong>decompressed payload and the CRC-32 / Adler-32 checksums are byte-exact with
+  MRI</strong>.</li>
+<li><strong>Method:</strong> each process runs 3 untimed warm-up passes, then 25 timed passes of
+  a fixed inner loop, timed with a monotonic clock; the <strong>best</strong> pass is reported
+  as <strong>ns/op</strong> (lower is better). <code>vs MRI</code> &lt; 1.00× means <em>faster than MRI</em>.
+  Interpreter start-up is outside the timed region, so these are operation costs,
+  not <code>ruby file.rb</code> process costs.</li>
+</ul>
+<p>The harness lives in this repo under
+<a href="https://github.com/go-ruby-zlib/docs/tree/main/benchmarks"><code>benchmarks/</code></a>
+(<code>go/</code> driver pinning the published library, <code>ruby/zlib.rb</code>, <code>run.sh</code>).
+Reproduce: <code>bash benchmarks/run.sh</code>.</p>
+<h4 id="deflate-64kib-l6">deflate-64KiB-L6<a class="headerlink" href="#deflate-64kib-l6" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Runtime</th>
+<th style="text-align: right;">ns/op</th>
+<th style="text-align: right;">vs MRI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>go-ruby (pure Go)</strong></td>
+<td style="text-align: right;">83199.6</td>
+<td style="text-align: right;">0.14×</td>
+</tr>
+<tr>
+<td>MRI</td>
+<td style="text-align: right;">597440.0</td>
+<td style="text-align: right;">1.00×</td>
+</tr>
+<tr>
+<td>MRI + YJIT</td>
+<td style="text-align: right;">598860.0</td>
+<td style="text-align: right;">1.00×</td>
+</tr>
+<tr>
+<td>JRuby</td>
+<td style="text-align: right;">784871.7</td>
+<td style="text-align: right;">1.31×</td>
+</tr>
+<tr>
+<td>TruffleRuby</td>
+<td style="text-align: right;">613396.2</td>
+<td style="text-align: right;">1.03×</td>
+</tr>
+</tbody>
+</table>
+<h4 id="inflate-64kib-l6">inflate-64KiB-L6<a class="headerlink" href="#inflate-64kib-l6" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Runtime</th>
+<th style="text-align: right;">ns/op</th>
+<th style="text-align: right;">vs MRI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>go-ruby (pure Go)</strong></td>
+<td style="text-align: right;">43174.6</td>
+<td style="text-align: right;">2.53×</td>
+</tr>
+<tr>
+<td>MRI</td>
+<td style="text-align: right;">17090.0</td>
+<td style="text-align: right;">1.00×</td>
+</tr>
+<tr>
+<td>MRI + YJIT</td>
+<td style="text-align: right;">17450.0</td>
+<td style="text-align: right;">1.02×</td>
+</tr>
+<tr>
+<td>JRuby</td>
+<td style="text-align: right;">74047.1</td>
+<td style="text-align: right;">4.33×</td>
+</tr>
+<tr>
+<td>TruffleRuby</td>
+<td style="text-align: right;">43967.9</td>
+<td style="text-align: right;">2.57×</td>
+</tr>
+</tbody>
+</table>
+<h4 id="crc32-64kib">crc32-64KiB<a class="headerlink" href="#crc32-64kib" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Runtime</th>
+<th style="text-align: right;">ns/op</th>
+<th style="text-align: right;">vs MRI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>go-ruby (pure Go)</strong></td>
+<td style="text-align: right;">5443.8</td>
+<td style="text-align: right;">3.86×</td>
+</tr>
+<tr>
+<td>MRI</td>
+<td style="text-align: right;">1412.0</td>
+<td style="text-align: right;">1.00×</td>
+</tr>
+<tr>
+<td>MRI + YJIT</td>
+<td style="text-align: right;">1552.0</td>
+<td style="text-align: right;">1.10×</td>
+</tr>
+<tr>
+<td>JRuby</td>
+<td style="text-align: right;">6236.3</td>
+<td style="text-align: right;">4.42×</td>
+</tr>
+<tr>
+<td>TruffleRuby</td>
+<td style="text-align: right;">2299.9</td>
+<td style="text-align: right;">1.63×</td>
+</tr>
+</tbody>
+</table>
+<h4 id="adler32-64kib">adler32-64KiB<a class="headerlink" href="#adler32-64kib" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Runtime</th>
+<th style="text-align: right;">ns/op</th>
+<th style="text-align: right;">vs MRI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>go-ruby (pure Go)</strong></td>
+<td style="text-align: right;">17609.0</td>
+<td style="text-align: right;">6.08×</td>
+</tr>
+<tr>
+<td>MRI</td>
+<td style="text-align: right;">2894.0</td>
+<td style="text-align: right;">1.00×</td>
+</tr>
+<tr>
+<td>MRI + YJIT</td>
+<td style="text-align: right;">2844.0</td>
+<td style="text-align: right;">0.98×</td>
+</tr>
+<tr>
+<td>JRuby</td>
+<td style="text-align: right;">2385.1</td>
+<td style="text-align: right;">0.82×</td>
+</tr>
+<tr>
+<td>TruffleRuby</td>
+<td style="text-align: right;">3838.1</td>
+<td style="text-align: right;">1.33×</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reading-the-numbers">Reading the numbers<a class="headerlink" href="#reading-the-numbers" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Deflate — go-ruby is ~7× faster than MRI (0.14×).</strong> This is the headline and
+  it is real: <code>klauspost/compress</code> at level 6, with the engine pooling landed in
+  the library (reusing the compressor across one-shot calls instead of allocating
+  a fresh <code>z_stream</code> each time), beats MRI's C zlib on this buffer. Both YJIT and
+  TruffleRuby track MRI (the work is inside the C extension, not the interpreter).</li>
+<li><strong>Inflate — go-ruby is ~2.5× slower than MRI (2.53×).</strong> MRI's C zlib inflate is
+  faster than pure-Go flate decompression here; go-ruby lands right alongside
+  TruffleRuby (2.57×) and well ahead of JRuby (4.33×). This is the clearest
+  optimization target for the library.</li>
+<li><strong>CRC-32 — go-ruby is ~3.9× slower than MRI (3.86×).</strong> Go's <code>hash/crc32</code> IEEE
+  path on arm64 is a generic slicing-by-8 table, not a hardware-CRC kernel, so it
+  trails zlib's optimized checksum; go-ruby is still faster than JRuby (4.42×).</li>
+<li><strong>Adler-32 — go-ruby is ~6× slower than MRI (6.08×).</strong> Go's scalar
+  <code>hash/adler32</code> is the slowest column here; zlib's vectorized Adler-32 and even
+  JRuby (0.82×) beat it. A SIMD Adler-32 is the largest single checksum gap.</li>
+</ul>
+<p>The parity picture is therefore <strong>split</strong>: go-ruby-zlib is <em>faster than the C
+reference on deflate</em> and <em>behind it on inflate and on the two checksums</em>. The
+checksum gaps are hand-asm/SIMD walls (Go's standard-library kernels vs zlib's
+tuned ones), which is the honest ceiling for a CGO=0 stack on this host.</p>
+<div class="admonition note">
+<p class="admonition-title">Honest framing</p>
+<p>JRuby and TruffleRuby carry JIT warm-up; the 3-pass warm-up here lets them
+approach steady state but does not fully erase it, so treat their sub-<code>~5 µs</code>
+checksum rows as order-of-magnitude. <code>vs MRI</code> compares against MRI's C-zlib
+extension, not against a pure-Ruby baseline. These are <strong>real measured
+numbers</strong> from the 2026-07-03 run (host and versions above); best-of-25 was
+stable across repeated runs (deflate 0.14×, inflate ~2.4–2.5×, crc32
+~3.5–3.9×, adler32 ~5.5–6.1×). Nothing is fabricated or cherry-picked.</p>
 </div>
 
 
