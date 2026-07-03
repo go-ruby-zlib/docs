@@ -1,0 +1,2 @@
+# Compiled benchmark driver produced by `go build`/`go run` — never commit it.
+/bench
