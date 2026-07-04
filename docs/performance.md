@@ -52,8 +52,9 @@ the `rbgo` interpreter path recorded above. It isolates the library primitive
 from Ruby-interpreter dispatch, answering the parity question head-on: *is the
 pure-Go implementation as fast as the reference runtime's own `zlib`?* Ruby's
 `zlib` is a C extension wrapping the system C `zlib`, whereas `go-ruby-zlib` is
-pure Go (`github.com/klauspost/compress` for DEFLATE, a hand-written arm64 PMULL
-carryless-multiply kernel for CRC-32, and `go-simd/adler32` for Adler-32) — so
+pure Go (`github.com/klauspost/compress` for DEFLATE, the hand-written arm64 PMULL
+carryless-multiply kernel of `go-simd/crc32` for CRC-32, and `go-simd/adler32`
+for Adler-32) — so
 this is a pure-Go stack measured head-to-head against a C library, and we report
 the real numbers either way.
 
@@ -139,7 +140,7 @@ now beats MRI's C zlib and YJIT. See below.)*
   optimization target for the library.
 - **CRC-32 — go-ruby is now ~10% *faster* than MRI (0.90×) and beats YJIT
   (0.82× of YJIT).** The library folds CRC-32 with a hand-written arm64 **PMULL
-  fold-by-eight** carryless-multiply kernel (`internal/crc32simd`), bit-identical
+  fold-by-eight** carryless-multiply kernel ([`go-simd/crc32`](https://github.com/go-simd/crc32)), bit-identical
   to `hash/crc32` but ~4.3× faster than it here: Go's standard-library IEEE path
   on arm64 is a **latency-bound serial `CRC32X`** instruction, whereas eight
   independent 128-bit accumulators saturate the M-series PMULL units and clear
@@ -169,8 +170,9 @@ an algorithmic one.
     kernel, so the library defers to it there (parity, already at C-zlib class);
     ppc64le/s390x likewise use their hardware-assisted standard-library path. The
     hand kernel targets arm64 precisely because its standard-library path is the
-    serial `CRC32X`. The reusable fold is a candidate for extraction into a
-    standalone `go-simd/crc32` (flagged as follow-up).
+    serial `CRC32X`. The reusable fold now lives in the standalone
+    [`go-simd/crc32`](https://github.com/go-simd/crc32) (a bit-exact `hash/crc32`
+    drop-in), which the library consumes directly.
 
 !!! note "Honest framing"
     JRuby and TruffleRuby carry JIT warm-up; the 3-pass warm-up here lets them
