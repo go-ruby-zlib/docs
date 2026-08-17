@@ -44,6 +44,18 @@ jobs:
     # granted to a fork's PR anyway.
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: build
+    # Two deploys must never run at once: `mike deploy --push` pushes gh-pages,
+    # and a second job doing the same is rejected outright —
+    #
+    #   ! [rejected]  gh-pages -> gh-pages (fetch first)
+    #
+    # which is what happened here when four dependency PRs were merged within a
+    # few seconds of each other. cancel-in-progress stays FALSE deliberately:
+    # killing a publish half way through is worse than making it wait, and the
+    # queued run then fetches the gh-pages the previous one just wrote.
+    concurrency:
+      group: gh-pages-deploy
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
