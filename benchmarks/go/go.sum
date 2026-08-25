@@ -4,8 +4,12 @@ github.com/go-ruby-zlib/zlib v0.0.0-20260717075738-8588fe01258c h1:RB1e6p5OOALbp
 github.com/go-ruby-zlib/zlib v0.0.0-20260717075738-8588fe01258c/go.mod h1:FkJRdCmURhcHd+lhTypMwW7E/aWpZEzjY/WNBAHAdjU=
 github.com/go-ruby-zlib/zlib v0.0.0-20260820055445-0ab60d03c99d h1:x/KpUI+ApU3oJubs1tlT+X187GGqJfXxhPXmZPALaPo=
 github.com/go-ruby-zlib/zlib v0.0.0-20260820055445-0ab60d03c99d/go.mod h1:SOLyGziydP2ezRks35xGyijda6QJSfi0PdU+aQpCrc8=
+github.com/go-ruby-zlib/zlib v0.0.0-20260820215750-2e3b72ff36e6 h1:ElgQ+F86HCuWwak92euWQtEm42kLPOMlhLzuOAjkNU4=
+github.com/go-ruby-zlib/zlib v0.0.0-20260820215750-2e3b72ff36e6/go.mod h1:pxHEfejGm++FIzL96mlPlbSRZAK94OzzCRHoS9GcEmU=
 github.com/go-simd/adler32 v0.0.0-20260703095822-b2b45fec563b h1:mZiaZMwcLCZb9hoOXEUaZWgTpkMYtSeEfIaoIngt1eE=
 github.com/go-simd/adler32 v0.0.0-20260703095822-b2b45fec563b/go.mod h1:hu6jr9JjgDqUgOH0E/EB2YEl7JCDo6ofwnMlyxMdax4=
+github.com/go-simd/adler32 v0.0.0-20260806072918-d22a1af9221c h1:LPsf2r6YzQ6MBJWGIdRV3x5PiVQwE7U/tSMGsMJRu7w=
+github.com/go-simd/adler32 v0.0.0-20260806072918-d22a1af9221c/go.mod h1:HWPtFajRu5iHd4oa1wk1r438dwiO6mGfEdLdQciBOWo=
 github.com/go-simd/crc32 v0.0.0-20260703213456-a1976694a16e h1:TY/d8khTtjYFUKsKICVDm6bveIxVfuLHBRol9OmehsI=
 github.com/go-simd/crc32 v0.0.0-20260703213456-a1976694a16e/go.mod h1:1N7DeFe7ILGSXGeqeifVxtpItIG7ZC+Y3flz37ZJhsM=
 github.com/klauspost/compress v1.18.7 h1:aUyZsS4kH3QTKurYhAOwAHxllVPnOthb3vPfnF1Ehjw=
