@@ -14,6 +14,8 @@ github.com/go-ruby-zlib/zlib v0.0.0-20260903192913-b4a4e5ea5177 h1:F/FsTjHRb5ILX
 github.com/go-ruby-zlib/zlib v0.0.0-20260903192913-b4a4e5ea5177/go.mod h1:xjQ1Ux6Ay9CHvu01+xxFNZCagdWKB55fUTPJpIQgXlE=
 github.com/go-ruby-zlib/zlib v0.0.0-20260905061644-146cf9612b10 h1:EtuThaOV4ef/NXsB+vu3K4NO2lcSefvoabOic9rv6Iw=
 github.com/go-ruby-zlib/zlib v0.0.0-20260905061644-146cf9612b10/go.mod h1:TevjLWMMhfg6lmCoaFPEhxyZRjannVCR+T0LQ+VFDSE=
+github.com/go-ruby-zlib/zlib v0.0.0-20260916104412-cebc266933cb h1:7Lp2iNkyLxcFAaJJk90mMis1YXS/RO1wi+tZYoGv05k=
+github.com/go-ruby-zlib/zlib v0.0.0-20260916104412-cebc266933cb/go.mod h1:TevjLWMMhfg6lmCoaFPEhxyZRjannVCR+T0LQ+VFDSE=
 github.com/go-simd/adler32 v0.0.0-20260703095822-b2b45fec563b h1:mZiaZMwcLCZb9hoOXEUaZWgTpkMYtSeEfIaoIngt1eE=
 github.com/go-simd/adler32 v0.0.0-20260703095822-b2b45fec563b/go.mod h1:hu6jr9JjgDqUgOH0E/EB2YEl7JCDo6ofwnMlyxMdax4=
 github.com/go-simd/adler32 v0.0.0-20260806072918-d22a1af9221c h1:LPsf2r6YzQ6MBJWGIdRV3x5PiVQwE7U/tSMGsMJRu7w=
