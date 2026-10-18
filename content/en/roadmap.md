@@ -1,4 +1,9 @@
-# Roadmap
+---
+title: "Roadmap"
+weight: 40
+---
+
+# Roadmap {#roadmap}
 
 `go-ruby-zlib/zlib` is grown **test-first**, each capability differential-tested against MRI
 rather than built in isolation. Ruby's Zlib — the deterministic,
@@ -13,7 +18,7 @@ interpreter-independent slice — is **complete**.
 | Constants & errors | Compression levels, strategies, flush modes, `Version` / `ZlibVersion`, and an `*Error` family carrying MRI's class names (`Zlib::StreamError`, `Zlib::BufError`, `Zlib::DataError`, `Zlib::GzipFile::Error`). | **Done** |
 | Differential oracle & coverage | Checksums and `combine` values compared byte-exact with the system `ruby`; deflate / gzip / streaming round-tripped through MRI in both directions. 100% coverage, gofmt + go vet clean, green across all six 64-bit Go arches and three OSes. | **Done** |
 
-## Documented out-of-scope boundaries
+## Documented out-of-scope boundaries {#documented-out-of-scope-boundaries}
 
 These are **deliberate**, recorded so the module's surface is unambiguous:
 
@@ -27,5 +32,5 @@ These are **deliberate**, recorded so the module's surface is unambiguous:
 - **Standalone & reusable.** The module has no dependency on the Ruby runtime;
   the dependency runs the other way.
 
-See [Usage & API](api.md) for the surface and [Why pure Go](why.md) for the
+See [Usage & API]({{< relref "api.md" >}}) for the surface and [Why pure Go]({{< relref "why.md" >}}) for the
 deterministic/interpreter split.

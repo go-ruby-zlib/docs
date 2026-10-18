@@ -1,4 +1,9 @@
-# Performance
+---
+title: "Performance"
+weight: 50
+---
+
+# Performance {#performance}
 
 `go-ruby-zlib/zlib` is the pure-Go library that
 [`rbgo`](https://github.com/go-embedded-ruby/ruby) binds for Ruby's `zlib`. This
@@ -6,7 +11,7 @@ page records the **methodology** for the comparative benchmark of that module
 against the reference Ruby runtimes, part of the ecosystem-wide per-module parity
 suite.
 
-## What is measured
+## What is measured {#what-is-measured}
 
 The **same** Ruby script — a representative `Zlib` workload — is run under every
 runtime. `rbgo`'s number reflects **this pure-Go library doing the work**; every
@@ -24,7 +29,7 @@ MRI** before timing.
   (`zlib.rb` + `run.sh`). Reproduce:
   `RBGO=./rbgo TRUFFLE=truffleruby bash bench/modules/run.sh 5`.
 
-## Result (best of 5, ms)
+## Result (best of 5, ms) {#result-best-of-5-ms}
 
 | Runtime | time | vs MRI |
 | --- | ---: | ---: |
@@ -36,16 +41,19 @@ MRI** before timing.
 
 rbgo runs on **go-ruby-zlib** and is **~6x slower than MRI** here (6.0x): MRI's `zlib` is a thin wrapper over C zlib, while go-ruby-zlib goes through Go's `compress/flate` — competitive but not at C-zlib throughput on this deflate+inflate loop. Honest gap, flagged for the go-ruby-zlib perf backlog.
 
-!!! note "Honest framing"
-    JRuby and TruffleRuby are timed **cold, single-shot**, so they carry JVM /
-    Graal startup on every run — read them as one-shot `ruby file.rb` costs, the
-    same way `rbgo` and MRI are measured, not as steady-state JIT numbers. Rows
-    that complete in well under ~200 ms carry the most relative noise; treat
-    their ratios as order-of-magnitude. These are **real measured numbers** from
-    the 2026-06-30 run (Apple M-series; `ruby 4.0.5 +PRISM`, `jruby 10.1.0.0`,
-    `truffleruby 34.0.1`) — nothing is fabricated or cherry-picked.
+{{< callout type="info" >}}
+**Honest framing**
 
-## Library-level benchmark (Go API vs runtimes) — 2026-07-03
+JRuby and TruffleRuby are timed **cold, single-shot**, so they carry JVM /
+Graal startup on every run — read them as one-shot `ruby file.rb` costs, the
+same way `rbgo` and MRI are measured, not as steady-state JIT numbers. Rows
+that complete in well under ~200 ms carry the most relative noise; treat
+their ratios as order-of-magnitude. These are **real measured numbers** from
+the 2026-06-30 run (Apple M-series; `ruby 4.0.5 +PRISM`, `jruby 10.1.0.0`,
+`truffleruby 34.0.1`) — nothing is fabricated or cherry-picked.
+{{< /callout >}}
+
+## Library-level benchmark (Go API vs runtimes) — 2026-07-03 {#library-level-benchmark-go-api-vs-runtimes-2026-07-03}
 
 This section measures the **pure-Go library directly, through its Go API** — not
 the `rbgo` interpreter path recorded above. It isolates the library primitive
@@ -84,7 +92,7 @@ The harness lives in this repo under
 (`go/` driver pinning the published library, `ruby/zlib.rb`, `run.sh`).
 Reproduce: `bash benchmarks/run.sh`.
 
-#### deflate-64KiB-L6
+#### deflate-64KiB-L6 {#deflate-64kib-l6}
 
 | Runtime | ns/op | vs MRI |
 | --- | ---: | ---: |
@@ -94,7 +102,7 @@ Reproduce: `bash benchmarks/run.sh`.
 | JRuby | 784871.7 | 1.31× |
 | TruffleRuby | 613396.2 | 1.03× |
 
-#### inflate-64KiB-L6
+#### inflate-64KiB-L6 {#inflate-64kib-l6}
 
 | Runtime | ns/op | vs MRI |
 | --- | ---: | ---: |
@@ -104,7 +112,7 @@ Reproduce: `bash benchmarks/run.sh`.
 | JRuby | 74047.1 | 4.33× |
 | TruffleRuby | 43967.9 | 2.57× |
 
-#### crc32-64KiB
+#### crc32-64KiB {#crc32-64kib}
 
 | Runtime | ns/op | vs MRI |
 | --- | ---: | ---: |
@@ -117,7 +125,7 @@ Reproduce: `bash benchmarks/run.sh`.
 *(2026-07-03: was 5443.8 / 3.86× before the SIMD kernel — a 4.3× speed-up that
 now beats MRI's C zlib and YJIT. See below.)*
 
-#### adler32-64KiB
+#### adler32-64KiB {#adler32-64kib}
 
 | Runtime | ns/op | vs MRI |
 | --- | ---: | ---: |
@@ -127,7 +135,7 @@ now beats MRI's C zlib and YJIT. See below.)*
 | JRuby | 2385.1 | 0.82× |
 | TruffleRuby | 3838.1 | 1.33× |
 
-### Reading the numbers
+### Reading the numbers {#reading-the-numbers}
 
 - **Deflate — go-ruby is ~7× faster than MRI (0.14×).** This is the headline and
   it is real: `klauspost/compress` at level 6, with the engine pooling landed in
@@ -164,21 +172,27 @@ CRC-32 gap is closed with a carryless-multiply kernel; the remaining Adler-32 ga
 is a stable-Go arm64 toolchain wall (no integer NEON multiply until Go 1.27), not
 an algorithmic one.
 
-!!! note "Per-architecture"
-    The CRC-32 PMULL kernel is **arm64-only**: on amd64 the Go standard library's
-    IEEE path is *already* a fold-by-four (and AVX512 fold-by-sixteen) PCLMULQDQ
-    kernel, so the library defers to it there (parity, already at C-zlib class);
-    ppc64le/s390x likewise use their hardware-assisted standard-library path. The
-    hand kernel targets arm64 precisely because its standard-library path is the
-    serial `CRC32X`. The reusable fold now lives in the standalone
-    [`go-simd/crc32`](https://github.com/go-simd/crc32) (a bit-exact `hash/crc32`
-    drop-in), which the library consumes directly.
+{{< callout type="info" >}}
+**Per-architecture**
 
-!!! note "Honest framing"
-    JRuby and TruffleRuby carry JIT warm-up; the 3-pass warm-up here lets them
-    approach steady state but does not fully erase it, so treat their sub-`~5 µs`
-    checksum rows as order-of-magnitude. `vs MRI` compares against MRI's C-zlib
-    extension, not against a pure-Ruby baseline. These are **real measured
-    numbers** from the 2026-07-03 run (host and versions above); best-of-25 was
-    stable across repeated runs (deflate 0.14×, inflate ~2.4–2.5×, crc32
-    ~0.88–0.92×, adler32 ~5.5–6.3×). Nothing is fabricated or cherry-picked.
+The CRC-32 PMULL kernel is **arm64-only**: on amd64 the Go standard library's
+IEEE path is *already* a fold-by-four (and AVX512 fold-by-sixteen) PCLMULQDQ
+kernel, so the library defers to it there (parity, already at C-zlib class);
+ppc64le/s390x likewise use their hardware-assisted standard-library path. The
+hand kernel targets arm64 precisely because its standard-library path is the
+serial `CRC32X`. The reusable fold now lives in the standalone
+[`go-simd/crc32`](https://github.com/go-simd/crc32) (a bit-exact `hash/crc32`
+drop-in), which the library consumes directly.
+{{< /callout >}}
+
+{{< callout type="info" >}}
+**Honest framing**
+
+JRuby and TruffleRuby carry JIT warm-up; the 3-pass warm-up here lets them
+approach steady state but does not fully erase it, so treat their sub-`~5 µs`
+checksum rows as order-of-magnitude. `vs MRI` compares against MRI's C-zlib
+extension, not against a pure-Ruby baseline. These are **real measured
+numbers** from the 2026-07-03 run (host and versions above); best-of-25 was
+stable across repeated runs (deflate 0.14×, inflate ~2.4–2.5×, crc32
+~0.88–0.92×, adler32 ~5.5–6.3×). Nothing is fabricated or cherry-picked.
+{{< /callout >}}

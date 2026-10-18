@@ -1,20 +1,28 @@
-# Usage & API
+---
+title: "Usage & API"
+weight: 30
+---
+
+# Usage & API {#usage-api}
 
 The public API lives at the module root (`github.com/go-ruby-zlib/zlib`). It is **Ruby-shaped but
 Go-idiomatic**: the surface mirrors MRI's `Zlib`, while following Go conventions —
 an explicit `error` where Ruby raises, value types, no global state.
 
-!!! success "Status: implemented"
-    The library is built and importable as `github.com/go-ruby-zlib/zlib`, bound into
-    `rbgo` as a native module; see [Roadmap](roadmap.md).
+{{< callout type="info" >}}
+**Status: implemented**
 
-## Install
+The library is built and importable as `github.com/go-ruby-zlib/zlib`, bound into
+`rbgo` as a native module; see [Roadmap]({{< relref "roadmap.md" >}}).
+{{< /callout >}}
+
+## Install {#install}
 
 ```sh
 go get github.com/go-ruby-zlib/zlib
 ```
 
-## Worked example
+## Worked example {#worked-example}
 
 ```go
 package main
@@ -37,7 +45,7 @@ func main() {
 }
 ```
 
-## Shape
+## Shape {#shape}
 
 ```go
 // One-shot
@@ -78,7 +86,7 @@ type Error struct{ Class, Msg string /* … */ }
 var ErrStream, ErrBuf, ErrData, ErrGzipFile *Error
 ```
 
-## MRI conformance
+## MRI conformance {#mri-conformance}
 
 Correctness is defined by reference Ruby. A **differential oracle** runs a wide
 corpus through both the system `ruby` and this library and compares the results
@@ -86,7 +94,7 @@ corpus through both the system `ruby` and this library and compares the results
 themselves where `ruby` is not on `PATH` (e.g. the qemu arch lanes), so the
 cross-arch builds still validate the library.
 
-## Relationship to Ruby
+## Relationship to Ruby {#relationship-to-ruby}
 
 `go-ruby-zlib/zlib` is **standalone and reusable**, and is the backend bound into
 [go-embedded-ruby](https://github.com/go-embedded-ruby/ruby) by `rbgo` as a
